@@ -89,17 +89,24 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .stats b { font: 800 2rem/1 var(--display); }
 .stats span { font-size: 0.88rem; color: var(--soft); }
 
-/* Photo panel: the portrait in its real colors, with a dark fade at the bottom so the name and chips stay legible */
-.portrait {
-  position: relative; aspect-ratio: 4 / 5; max-width: 100%; border-radius: 22px; overflow: hidden; isolation: isolate;
-  background: var(--panel);
+/* Photo panel: the cutout portrait stands on a gradient card and its head rises above the card's top edge.
+   Layers: card (::before) < big outline initial < photo < bottom fade (::after) < name < chips. */
+.portrait { position: relative; aspect-ratio: 4 / 5; max-width: 100%; isolation: isolate; }
+.portrait::before {
+  content: ""; position: absolute; inset: 16% 0 0; z-index: -2; border-radius: 22px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(241, 238, 248, 0.14) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    radial-gradient(90% 70% at 85% 0%, var(--coral) 0%, transparent 60%),
+    radial-gradient(100% 80% at 0% 100%, var(--violet) 0%, transparent 65%),
+    #3a2c7a;
 }
-.portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
-.portrait::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 58%, rgba(18, 15, 28, 0.8) 100%); z-index: 1; }
+.portrait .initial { position: absolute; top: 17%; left: 8%; z-index: -1; font: italic 400 clamp(7rem, 19vw, 14rem)/0.9 var(--name); color: transparent; -webkit-text-stroke: 1.5px rgba(241, 238, 248, 0.22); pointer-events: none; }
+.portrait img { position: absolute; inset: auto 0 0; margin-inline: auto; height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 18px 30px rgba(18, 15, 28, 0.45)); -webkit-mask-image: linear-gradient(180deg, #000 88%, transparent 100%); mask-image: linear-gradient(180deg, #000 88%, transparent 100%); }
+.portrait::after { content: ""; position: absolute; inset: 16% 0 0; z-index: 1; border-radius: 22px; background: linear-gradient(180deg, transparent 62%, rgba(18, 15, 28, 0.78) 100%); pointer-events: none; }
 .portrait .name { position: absolute; left: 0; right: 0; bottom: 13%; z-index: 2; text-align: center; font: italic 400 clamp(3rem, 8vw, 5.2rem)/0.9 var(--name); color: var(--text); text-shadow: 0 4px 24px rgba(18, 15, 28, 0.6); }
 .chip { position: absolute; z-index: 3; font: 500 0.8rem/1 var(--mono); background: var(--ink); color: var(--text); padding: 10px 12px; border-radius: 999px; border: 1px solid var(--line); animation: bob 6s ease-in-out infinite; }
-.chip.a { top: 5%; left: 5%; }
-.chip.b { bottom: 34%; right: 5%; animation-delay: -2s; }
+.chip.a { bottom: 46%; left: -3%; }
+.chip.b { bottom: 34%; right: -3%; animation-delay: -2s; }
 .chip.c { bottom: 5%; left: 50%; translate: -50% 0; animation-delay: -4s; white-space: nowrap; }
 .chip.a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #44d18a; margin-right: 8px; vertical-align: 1px; }
 @keyframes bob { 50% { transform: translateY(-6px); } }
@@ -249,10 +256,12 @@ section.block .wrap { display: grid; gap: 32px; padding-block: 72px; }
 .hero h1 .hl { background-size: 220% 100%; animation: flow 7s ease-in-out infinite alternate; }
 @keyframes flow { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 
-.portrait { animation: rise 0.9s 0.2s ease-out backwards, glow 7s 1.2s ease-in-out infinite alternate; }
-@keyframes glow { from { box-shadow: 0 24px 60px -30px var(--violet); } to { box-shadow: 0 24px 70px -26px var(--coral); } }
-.portrait img { animation: drift-photo 22s ease-in-out infinite alternate; transform-origin: 50% 30%; }
-@keyframes drift-photo { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
+.portrait::before { animation: glow 7s 1.2s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 24px 50px -34px color-mix(in srgb, var(--violet) 70%, transparent); } to { box-shadow: 0 24px 56px -32px color-mix(in srgb, var(--coral) 60%, transparent); } }
+.portrait img { animation: drift-photo 9s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes drift-photo { from { transform: none; } to { transform: scale(1.02) translateY(-0.6%); } }
+.portrait .initial { animation: float-initial 12s ease-in-out infinite alternate; }
+@keyframes float-initial { to { transform: translateY(-4%) rotate(-3deg); } }
 
 .chip.a::before { animation: ping 2.4s ease-out infinite; }
 @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(68, 209, 138, 0.6); } 80%, 100% { box-shadow: 0 0 0 8px rgba(68, 209, 138, 0); } }
@@ -283,6 +292,8 @@ section.block .wrap { display: grid; gap: 32px; padding-block: 72px; }
 @media (max-width: 900px) {
   .hero .wrap, .contact, .about-grid, .proj.wide { grid-template-columns: 1fr; }
   .portrait { aspect-ratio: 1 / 1; max-height: 520px; }
+  .chip.a { left: 3%; }
+  .chip.b { right: 3%; }
   .proj.wide .shot { grid-row: auto; }
   .services, .projects, .packages, .values, .problems { grid-template-columns: 1fr; }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -331,7 +342,8 @@ section.block .wrap { display: grid; gap: 32px; padding-block: 72px; }
         </div>
       </div>
       <div class="portrait">
-        <img src="img/julian.jpg" alt="Julián Lagunes" width="1973" height="2000">
+        <div class="initial" aria-hidden="true">J</div>
+        <img src="img/julian-recorte.webp" alt="Julián Lagunes" width="921" height="1235">
         <div class="name" aria-hidden="true">Julián</div>
         <span class="chip a">Disponible para proyectos</span>
         <span class="chip b">WordPress · Google</span>
