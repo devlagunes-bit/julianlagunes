@@ -235,6 +235,51 @@ section.block .wrap { display: grid; gap: 32px; padding-block: 72px; }
 .card button:hover, .card a.go:hover { border-color: var(--violet); }
 .foot .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-block: 28px 40px; color: var(--soft); font-size: 0.88rem; }
 
+/* Ambient motion: slow, looping, never blocks reading. All of it stops under prefers-reduced-motion (rule at the top). */
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient span { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; filter: blur(90px); opacity: 0.16; }
+.ambient span:nth-child(1) { background: var(--violet); top: -18vmax; left: -12vmax; animation: wander-a 38s ease-in-out infinite alternate; }
+.ambient span:nth-child(2) { background: var(--coral); bottom: -22vmax; right: -14vmax; opacity: 0.11; animation: wander-b 46s ease-in-out infinite alternate; }
+@keyframes wander-a { to { transform: translate(38vw, 52vh) scale(1.15); } }
+@keyframes wander-b { to { transform: translate(-42vw, -48vh) scale(0.9); } }
+
+.logo i { display: inline-block; animation: blink 3.2s ease-in-out infinite; }
+@keyframes blink { 0%, 70%, 100% { opacity: 1; } 80% { opacity: 0.15; } }
+
+.hero h1 .hl { background-size: 220% 100%; animation: flow 7s ease-in-out infinite alternate; }
+@keyframes flow { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+
+.portrait { animation: rise 0.9s 0.2s ease-out backwards, glow 7s 1.2s ease-in-out infinite alternate; }
+@keyframes glow { from { box-shadow: 0 24px 60px -30px var(--violet); } to { box-shadow: 0 24px 70px -26px var(--coral); } }
+.portrait img { animation: drift-photo 22s ease-in-out infinite alternate; transform-origin: 50% 30%; }
+@keyframes drift-photo { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
+
+.chip.a::before { animation: ping 2.4s ease-out infinite; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(68, 209, 138, 0.6); } 80%, 100% { box-shadow: 0 0 0 8px rgba(68, 209, 138, 0); } }
+
+.pkg.star { position: relative; overflow: hidden; }
+.pkg.star::after { content: ""; position: absolute; inset: -40% auto -40% -60%; width: 40%; transform: rotate(18deg); background: linear-gradient(90deg, transparent, rgba(241, 238, 248, 0.07), transparent); animation: sweep 7s ease-in-out infinite; pointer-events: none; }
+@keyframes sweep { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+.steps li::before { animation: outline-shift 6s ease-in-out infinite alternate; }
+.steps li:nth-child(2)::before { animation-delay: -1.5s; }
+.steps li:nth-child(3)::before { animation-delay: -3s; }
+.steps li:nth-child(4)::before { animation-delay: -4.5s; }
+@keyframes outline-shift { to { -webkit-text-stroke-color: var(--coral); } }
+
+.contact { background-size: 180% 180%; animation: flow 16s ease-in-out infinite alternate; }
+
+/* Tools run as a slow marquee; the JS adds a hidden copy so the loop is seamless */
+.tools.marquee { flex-wrap: nowrap; gap: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.tools.marquee .track { display: flex; gap: 8px; flex: none; padding-right: 8px; animation: slide 40s linear infinite; }
+.tools.marquee:hover .track { animation-play-state: paused; }
+.tools.marquee span { white-space: nowrap; }
+@keyframes slide { to { transform: translateX(-100%); } }
+
+/* Gentle reveal as sections enter; only when JS is on, so nothing stays hidden without it */
+.js-reveal .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.js-reveal .reveal.in { opacity: 1; transform: none; }
+
 @media (max-width: 900px) {
   .hero .wrap, .contact, .about-grid, .proj.wide { grid-template-columns: 1fr; }
   .portrait { aspect-ratio: 1 / 1; max-height: 520px; }
@@ -252,6 +297,7 @@ section.block .wrap { display: grid; gap: 32px; padding-block: 72px; }
 </style>
 </head>
 <body>
+<div class="ambient" aria-hidden="true"><span></span><span></span></div>
 
 <header class="top">
   <div class="wrap">
@@ -612,6 +658,61 @@ document.querySelectorAll("[data-copy]").forEach(function (btn) {
     } else { select(); }
   });
 });
+
+(function () {
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Tools marquee: wrap the chips in a track and add an aria-hidden copy for a seamless loop
+  var tools = document.querySelector(".tools");
+  if (tools && !calm) {
+    var track = document.createElement("div");
+    track.className = "track";
+    while (tools.firstChild) track.appendChild(tools.firstChild);
+    var copy = track.cloneNode(true);
+    copy.setAttribute("aria-hidden", "true");
+    tools.appendChild(track);
+    tools.appendChild(copy);
+    tools.classList.add("marquee");
+  }
+
+  if (calm) return;
+
+  // Stats count up once on load
+  document.querySelectorAll(".stats b").forEach(function (el) {
+    var end = parseInt(el.textContent, 10);
+    if (!end || end < 2) return;
+    // Timers instead of requestAnimationFrame, so the final number always lands even where frames don't render
+    el.textContent = "0";
+    setTimeout(function () {
+      var start = Date.now();
+      var timer = setInterval(function () {
+        var p = Math.min((Date.now() - start) / 1200, 1);
+        el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3)));
+        if (p === 1) clearInterval(timer);
+      }, 30);
+    }, 500);
+  });
+
+  // Reveal blocks below the hero as they scroll in
+  if (!("IntersectionObserver" in window)) return;
+  var items = document.querySelectorAll("section.block .head, .about-lead, .path, .values > div, .problems > *, .service, .pkg, .terms, .proj, .steps li, .faq details, .contact");
+  document.documentElement.classList.add("js-reveal");
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      el.classList.add("in");
+      io.unobserve(el);
+      // Once shown, drop the reveal styles so hover lifts keep their own quick timing
+      setTimeout(function () { el.classList.remove("reveal", "in"); el.style.transitionDelay = ""; }, 1000);
+    });
+  }, { rootMargin: "0px 0px -8% 0px" });
+  items.forEach(function (el, i) {
+    el.classList.add("reveal");
+    el.style.transitionDelay = (i % 3) * 0.08 + "s";
+    io.observe(el);
+  });
+})();
 </script>
 </body>
 </html>
