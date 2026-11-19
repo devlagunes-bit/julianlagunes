@@ -1,0 +1,35 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "page",
+  "shape": "Work Index",
+  "theme": "studio",
+  "axes": "light/roman-serif/warm",
+  "hero": "Stage",
+  "nav": "banner over a retracting bar",
+  "footer": "mast",
+  "imagery": "screenshots 2 (capture.mjs) plus owner portrait and three work captures",
+  "photos": [],
+  "entry": "settle",
+  "fingerprint": "933e13",
+  "sections": [
+   "hero",
+   "work index",
+   "problem-answer table",
+   "price list",
+   "about split",
+   "process band",
+   "faq rows",
+   "ink close",
+   "mast footer"
+  ],
+  "signature": "the store-style catalog case opened at full width, crop-marked, with ratio redlines",
+  "waived": [
+   "44c",
+   "79"
+  ],
+  "prompt": "freelance web developer and Google Ads marketer portfolio for small businesses in Mexico",
+  "date": "2026-11-19"
+ }
+]
